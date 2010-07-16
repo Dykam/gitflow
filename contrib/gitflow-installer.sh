@@ -11,6 +11,9 @@
 # Does this need to be smarter for each host OS?
 if [ -z $PROGRAMFILES ] ; then # Windows
 	WINDOWS=true
+	DS="\\"
+else
+	DS="/"
 fi
 
 if [ -z "$INSTALL_PREFIX" ] ; then
@@ -40,8 +43,8 @@ case "$1" in
 		echo "Uninstalling git-flow from $INSTALL_PREFIX"
 		if [ -d "$INSTALL_PREFIX" ] ; then
 			for script_file in $SCRIPT_FILES $EXEC_FILES ; do
-				echo "rm -vf $INSTALL_PREFIX/$script_file"
-				rm -vf "$INSTALL_PREFIX/$script_file"
+				echo "rm -vf $INSTALL_PREFIX$DS$script_file"
+				rm -vf "$INSTALL_PREFIX$DS$script_file"
 			done
 		else
 			echo "The '$INSTALL_PREFIX' directory was not found."
@@ -59,13 +62,13 @@ case "$1" in
 		;;
 	*)
 		echo "Installing git-flow to $INSTALL_PREFIX"
-		if [[ -d "$REPO_NAME" && -d "$REPO_NAME\\.git" ]] ; then
+		if [[ -d "$REPO_NAME" && -d "$REPO_NAME$DS.git" ]] ; then
 			echo "Using existing repo: $REPO_NAME"
 		else
 			echo "Cloning repo from GitHub to $REPO_NAME"
 			git clone "$REPO_HOME" "$REPO_NAME"
 		fi
-		if [ -f "$REPO_NAME\\$SUBMODULE_FILE" ] ; then
+		if [ -f "$REPO_NAME$DS$SUBMODULE_FILE" ] ; then
 			echo "Submodules look up to date"
 		else
 			echo "Updating submodules"
