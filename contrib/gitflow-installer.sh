@@ -46,6 +46,10 @@ case "$1" in
 			for script_file in $SCRIPT_FILES $EXEC_FILES ; do
 				echo "rm -vf $INSTALL_PREFIX$DS$script_file"
 				rm -vf "$INSTALL_PREFIX$DS$script_file"
+				if [ $WINDOWS ] ; then
+					echo "rm -vf $INSTALL_PREFIX$DS$script_file.bat"
+					rm -vf "$INSTALL_PREFIX$DS$script_file.bat"					
+				fi
 			done
 		else
 			echo "The '$INSTALL_PREFIX' directory was not found."
@@ -81,12 +85,7 @@ case "$1" in
 		fi
 		if [ $WINDOWS ] ; then # Windows
 			mkdir "$INSTALL_PREFIX"
-			for exec_file in $EXEC_FILES ; do
-				xcopy //Y "$REPO_NAME\\$exec_file" "$INSTALL_PREFIX"
-				echo "@echo off" > "$INSTALL_PREFIX\\$exec_file.bat"
-				echo "sh \"%~dp0$exec_file\"" >> "$INSTALL_PREFIX\\$exec_file.bat"
-			done
-			for script_file in $SCRIPT_FILES ; do
+			for script_file in $SCRIPT_FILES $EXEC_FILES ; do
 				xcopy //Y "$REPO_NAME\\$script_file" "$INSTALL_PREFIX"
 				echo "@echo off" > "$INSTALL_PREFIX\\$script_file.bat"
 				echo "sh \"%~dp0$script_file\"" >> "$INSTALL_PREFIX\\$script_file.bat"

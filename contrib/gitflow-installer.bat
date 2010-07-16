@@ -1,2 +1,2 @@
 @echo off
-sh %~dp0\gitflow-installer.sh
+sh %~dp0\gitflow-installer.sh %*
