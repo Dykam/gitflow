@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # git-flow make-less installer for *nix systems, by Rick Osborne
+# Windows support added later by Dykam
 # Based on the git-flow core Makefile:
 # http://github.com/nvie/gitflow/blob/master/Makefile
 
@@ -8,8 +9,16 @@
 # http://github.com/nvie/gitflow/blob/develop/LICENSE
 
 # Does this need to be smarter for each host OS?
+if [ -z $PROGRAMFILES ] ; then # Windows
+	WINDOWS=true
+fi
+
 if [ -z "$INSTALL_PREFIX" ] ; then
-	INSTALL_PREFIX="/usr/local/bin"
+	if [ -z $WINDOWS ] ; then
+		INSTALL_PREFIX="$PROGRAMFILES\\GitFlow"
+	else
+		INSTALL_PREFIX="/usr/local/bin"
+	fi
 fi
 
 if [ -z "$REPO_NAME" ] ; then
@@ -50,13 +59,13 @@ case "$1" in
 		;;
 	*)
 		echo "Installing git-flow to $INSTALL_PREFIX"
-		if [[ -d "$REPO_NAME" && -d "$REPO_NAME/.git" ]] ; then
+		if [[ -d "$REPO_NAME" && -d "$REPO_NAME\\.git" ]] ; then
 			echo "Using existing repo: $REPO_NAME"
 		else
 			echo "Cloning repo from GitHub to $REPO_NAME"
 			git clone "$REPO_HOME" "$REPO_NAME"
 		fi
-		if [ -f "$REPO_NAME/$SUBMODULE_FILE" ] ; then
+		if [ -f "$REPO_NAME\\$SUBMODULE_FILE" ] ; then
 			echo "Submodules look up to date"
 		else
 			echo "Updating submodules"
@@ -66,13 +75,28 @@ case "$1" in
 			git submodule update
 			cd "$lastcwd"
 		fi
-		install -v -d -m 0755 "$INSTALL_PREFIX"
-		for exec_file in $EXEC_FILES ; do
-			install -v -m 0755 "$REPO_NAME/$exec_file" "$INSTALL_PREFIX"
-		done
-		for script_file in $SCRIPT_FILES ; do
-			install -v -m 0644 "$REPO_NAME/$script_file" "$INSTALL_PREFIX"
-		done
+		if [ -z $WINDOWS ] ; then # Windows
+			mkdir "$INSTALL_PREFIX"
+			for exec_file in $EXEC_FILES ; do
+				xcopy //Y "$REPO_NAME\\$exec_file" "$INSTALL_PREFIX"
+				echo "@echo off" > "$INSTALL_PREFIX\\$exec_file.bat"
+				echo "sh \"%~dp0$exec_file\"" >> "$INSTALL_PREFIX\\$exec_file.bat"
+			done
+			for script_file in $SCRIPT_FILES ; do
+				xcopy //Y "$REPO_NAME\\$script_file" "$INSTALL_PREFIX"
+				echo "@echo off" > "$INSTALL_PREFIX\\$script_file.bat"
+				echo "sh \"%~dp0$script_file\"" >> "$INSTALL_PREFIX\\$script_file.bat"
+			done	
+			echo "Add $INSTALL_PREFIX to the PATH for more convenient use"
+		else
+			install -v -d -m 0755 "$INSTALL_PREFIX"
+			for exec_file in $EXEC_FILES ; do
+				install -v -m 0755 "$REPO_NAME/$exec_file" "$INSTALL_PREFIX"
+			done
+			for script_file in $SCRIPT_FILES ; do
+				install -v -m 0644 "$REPO_NAME/$script_file" "$INSTALL_PREFIX"
+			done
+		fi
 		exit
 		;;
 esac
