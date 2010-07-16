@@ -9,7 +9,8 @@
 # http://github.com/nvie/gitflow/blob/develop/LICENSE
 
 # Does this need to be smarter for each host OS?
-if [ -z $PROGRAMFILES ] ; then # Windows
+type -P uname &>/dev/null || WINDOWS=true && DS="\\"
+if [[ $(uname) == CYGWIN* || $(uname) == MINGW* ]] ; then # Windows
 	WINDOWS=true
 	DS="\\"
 else
@@ -17,7 +18,7 @@ else
 fi
 
 if [ -z "$INSTALL_PREFIX" ] ; then
-	if [ -z $WINDOWS ] ; then
+	if [ $WINDOWS ] ; then
 		INSTALL_PREFIX="$PROGRAMFILES\\GitFlow"
 	else
 		INSTALL_PREFIX="/usr/local/bin"
@@ -78,7 +79,7 @@ case "$1" in
 			git submodule update
 			cd "$lastcwd"
 		fi
-		if [ -z $WINDOWS ] ; then # Windows
+		if [ $WINDOWS ] ; then # Windows
 			mkdir "$INSTALL_PREFIX"
 			for exec_file in $EXEC_FILES ; do
 				xcopy //Y "$REPO_NAME\\$exec_file" "$INSTALL_PREFIX"
@@ -89,7 +90,8 @@ case "$1" in
 				xcopy //Y "$REPO_NAME\\$script_file" "$INSTALL_PREFIX"
 				echo "@echo off" > "$INSTALL_PREFIX\\$script_file.bat"
 				echo "sh \"%~dp0$script_file\"" >> "$INSTALL_PREFIX\\$script_file.bat"
-			done	
+			done
+			# I've found no way of adding it persistently to the path
 			echo "Add $INSTALL_PREFIX to the PATH for more convenient use"
 		else
 			install -v -d -m 0755 "$INSTALL_PREFIX"
