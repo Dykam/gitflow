@@ -85,11 +85,17 @@ case "$1" in
 		fi
 		if [ $WINDOWS ] ; then # Windows
 			mkdir "$INSTALL_PREFIX"
-			for script_file in $SCRIPT_FILES $EXEC_FILES ; do
-				xcopy //Y "$REPO_NAME\\$script_file" "$INSTALL_PREFIX"
-				echo "@echo off" > "$INSTALL_PREFIX\\$script_file.bat"
-				echo "sh \"%~dp0$script_file\"" >> "$INSTALL_PREFIX\\$script_file.bat"
+			for exec_file in $EXEC_FILES ; do
+				xcopy //Y "$REPO_NAME\\$exec_file" "$INSTALL_PREFIX"
+				echo "@echo off" > "$INSTALL_PREFIX\\$exec_file.bat"
+				echo "sh \"%~dp0$exec_file\"" >> "$INSTALL_PREFIX\\$exec_file.bat"
 			done
+			for script_file in $SCRIPT_FILES ; do
+				xcopy //Y "$REPO_NAME\\$script_file" "$INSTALL_PREFIX"
+			done
+			# Resolve the symbolic link
+			touch "$INSTALL_PREFIX\\$SUBMODULE_FILE"
+			XCOPY //Y "$REPO_NAME\\$(cat $REPO_NAME\\$SUBMODULE_FILE | sed 's/\//\\/g')" "$INSTALL_PREFIX\\$SUBMODULE_FILE"
 			# I've found no way of adding it persistently to the path
 			echo "Add $INSTALL_PREFIX to the PATH for more convenient use"
 		else
